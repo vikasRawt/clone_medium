@@ -1,0 +1,5 @@
+name = "backend"
+compatibility_date = "2023-12-01"
+
+[vars]
+DATABASE_URL="postgresql://vicky582050:9aOGsgCzu2DF@ep-polished-heart-a5c3n1r3-pooler.us-east-2.aws.neon.tech/mediumDb?sslmode=require"
