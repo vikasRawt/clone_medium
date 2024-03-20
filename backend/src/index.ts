@@ -1,33 +1,12 @@
 import { Hono } from "hono";
-import api from "./Routes/routes";
-import { verify } from "hono/jwt";
+import userRouter from "./Routes/UserRoutes";
+import blogRoutes from "./Routes/BlogRoutes";
 
-const app = new Hono<{
-  Bindings: {
-    DATABASE_URL: string;
-    JWT_SECRET: string;
-  };
-  Variables: {
-    userId: string;
-  };
-}>();
 
-app.route("/api", api);
+const app = new Hono();
 
-app.use("/api/v1/blog/*", async (c, next) => {
-  const jwt = c.req.header("authorization");
-  if (!jwt) {
-    c.status(400);
-    return c.json({ error: "unauthorized" });
-  }
-  const token = jwt.split(" ")[1];
-  const payload = await verify(token, c.env.JWT_SECRET);
-  if (!payload) {
-    c.status(401);
-    return c.json({ error: "unauthorized" });
-  }
-  c.set('userId',payload.id);
-  await next()
-});
+app.route("/api/v1/user", userRouter);
+app.route("/api/v1/blog", blogRoutes);
+
 
 export default app;

@@ -1,16 +1,16 @@
 import { Hono } from "hono";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import { decode, sign, verify } from "hono/jwt";
+import { sign } from "hono/jwt";
 
-const api = new Hono<{
+const userRouter = new Hono<{
   Bindings: {
     DATABASE_URL: string;
     JWT_secret: string;
   };
-}>().basePath("/v1");
+}>()
 
-api.post("/user/signup", async (c) => {
+userRouter.post("/user/signup", async (c) => {
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -30,7 +30,7 @@ api.post("/user/signup", async (c) => {
     jwt: token,
   });
 });
-api.post("/user/signin", async (c) => {
+userRouter.post("/user/signin", async (c) => {
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -48,17 +48,5 @@ api.post("/user/signin", async (c) => {
   });
 });
 
-api.post("/blog", (c) => {
-  return c.text("Hello Hono!");
-});
-api.put("/blog", (c) => {
-  return c.text("Hello Hono!");
-});
-api.get("/blog/:id", (c) => {
-  return c.text("Hello Hono!");
-});
-api.get("/blog/bulk", (c) => {
-  return c.text("Hello Hono!");
-});
 
-export default api;
+export default userRouter;
