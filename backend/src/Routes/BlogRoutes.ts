@@ -14,13 +14,12 @@ const blogRoutes = new Hono<{
 }>();
 
 blogRoutes.use("*", async (c, next) => {
-  const jwt = c.req.header("authorization");
-  if (!jwt) {
+  const authHeader = c.req.header("authorization");
+  if (!authHeader) {
     c.status(400);
     return c.json({ error: "unauthorized" });
   }
-  const token = jwt.split(" ")[1];
-  const payload = await verify(token, c.env.JWT_secret);
+  const payload = await verify(authHeader, c.env.JWT_secret);
   if (!payload) {
     c.status(401);
     return c.json({ error: "unauthorized" });
@@ -35,12 +34,13 @@ blogRoutes.post("/", async (c) => {
   }).$extends(withAccelerate());
 
   const body = await c.req.json();
+  const authorId = c.get("userId");
 
   const post = await prisma.post.create({
     data: {
       title: body.title,
       content: body.content,
-      authorId: "1",
+      authorId: authorId,
     },
   });
   return c.json({
@@ -54,7 +54,6 @@ blogRoutes.put("/", async (c) => {
   }).$extends(withAccelerate());
 
   const body = await c.req.json();
-
   const post = await prisma.post.update({
     where: {
       id: body.id,
@@ -65,20 +64,32 @@ blogRoutes.put("/", async (c) => {
     },
   });
   return c.json({
-    id: body.id,
+    id: post.id,
   });
 });
+
+
+blogRoutes.get("/bulk", async (c) => {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+    const post = prisma.post.findMany({});
+  
+    return c.json({
+      post,
+    });
+  });
 
 blogRoutes.get("/:id", async (c) => {
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
-  const body = await c.req.json();
+  const id = c.req.param("id");
 
   const post = await prisma.post.findFirst({
     where: {
-      id: body.id,
+      id:id,
     },
   });
   return c.json({
@@ -86,15 +97,6 @@ blogRoutes.get("/:id", async (c) => {
   });
 });
 
-blogRoutes.get("/bulk", async (c) => {
-  const prisma = new PrismaClient({
-    datasourceUrl: c.env.DATABASE_URL,
-  }).$extends(withAccelerate());
-  const post = prisma.post.findMany({});
 
-  return c.json({
-    post,
-  });
-});
 
 export default blogRoutes;
