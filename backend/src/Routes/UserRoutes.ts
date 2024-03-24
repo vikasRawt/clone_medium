@@ -16,31 +16,26 @@ userRouter.post("/signup", async (c) => {
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
   const body = await c.req.json();
-  const success = signupInput.safeParse(body);
-  if (success) {
-    try {
-      const user = await prisma.user.create({
-        data: {
-          email: body.email,
-          password: body.password,
-        },
-      });
-      const payload = {
-        id: user.id,
-      };
-      const token = await sign(payload, c.env.JWT_secret);
-      return c.json({
-        jwt: token,
-      });
-    } catch (e) {
-      c.status(403);
-      return c.json({
-        message: "you are not logged in",
-      });
-    }
-  } else {
+  try {
+    const user = await prisma.user.create({
+      data: {
+        email: body.email,
+        password: body.password,
+        name: body.name,
+      },
+    });
+    const payload = {
+      id: user.id,
+    };
+    const token = await sign(payload, c.env.JWT_secret);
     return c.json({
-      message: "wrong credentials",
+      jwt: token,
+    });
+  } catch (e) {
+    console.log(e);
+    c.status(500); // Set appropriate status code for internal server error
+    return c.json({
+      message: "An error occurred while signing up the user.",
     });
   }
 });
