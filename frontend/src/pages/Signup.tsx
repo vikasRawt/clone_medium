@@ -19,7 +19,7 @@ export function Signup() {
         `${BACKEND_URL}/api/v1/user/signup`,
         inputs
       );
-      const jwt = response.data;
+      const jwt = response.data.jwt;
       localStorage.setItem("Token", jwt);
       navigate("/blog");
     } catch (error) {
