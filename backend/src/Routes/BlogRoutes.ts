@@ -14,7 +14,7 @@ const blogRoutes = new Hono<{
 }>();
 
 blogRoutes.use("*", async (c, next) => {
-  const authHeader = c.req.header("authorization");
+  const authHeader = c.req.header("Authorization");
   if (!authHeader) {
     c.status(400);
     return c.json({ error: "unauthorized" });
@@ -38,7 +38,7 @@ blogRoutes.post("/", async (c) => {
 
   const post = await prisma.post.create({
     data: {
-      title: body.title,
+      title: body.title, 
       content: body.content,
       authorId: authorId,
     },
@@ -73,12 +73,23 @@ blogRoutes.get("/bulk", async (c) => {
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
     }).$extends(withAccelerate());
-    const post = prisma.post.findMany({});
-  
+    const post = await prisma.post.findMany({
+      select:{
+        content: true,
+        title:true,
+        id: true,
+        author:{
+          select:{
+            name: true
+          }
+        }
+      }
+    });
     return c.json({
-      post,
+      post
     });
   });
+  
 
 blogRoutes.get("/:id", async (c) => {
   const prisma = new PrismaClient({
@@ -87,13 +98,13 @@ blogRoutes.get("/:id", async (c) => {
 
   const id = c.req.param("id");
 
-  const post = await prisma.post.findFirst({
+  const post = await prisma.post.findMany({
     where: {
-      id:id,
+      authorId:id,
     },
   });
   return c.json({
-    post,
+    post
   });
 });
 
