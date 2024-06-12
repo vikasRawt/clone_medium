@@ -21,7 +21,7 @@ blogRoutes.use("*", async (c, next) => {
   }
   const payload = await verify(authHeader, c.env.JWT_secret);
   if (!payload) {
-    c.status(401);
+    c.status(401); 
     return c.json({ error: "unauthorized" });
   }
   c.set("userId", payload.id);
